@@ -8,8 +8,8 @@
 //
 // Out: client/src/Mirage.Client.Shell/assets/graphics/Controls{Keyboard,Xbox,Playstation}.png
 //
-// Each image is 800x600. The upper 470px holds the primary controls (Move / Run / Attack / Pick Up /
-// Cast / Cycle / Chat); the bottom strip holds the ACTION BAR. There is no header — the Controls panel
+// Each image is 800x600. The upper 470px holds the primary controls (Move / Run / Interact / Pick Up
+// / Cycle / Chat); the bottom strip holds the ACTION BAR. There is no header — the Controls panel
 // already labels each scheme with its own tab strip, so a title inside the picture was wasted height.
 //
 // ── PORTED FROM PYTHON, 2026-08-15 ──────────────────────────────────────────────────────────────
@@ -252,12 +252,18 @@ void Pill(SKCanvas c, float cx, float cy, int w, int h, string label, SKColor fi
 }
 
 // ── Action-bar strip (shared bottom band) ────────────────────────────────────
-// Four slots, not three, and they are BOUND rather than fixed — see the header. The caption carries
-// that, because a picture of four numbered keys with no explanation invites the reader to assume the
-// numbers mean something inherent.
+// The slots are BOUND rather than fixed, and HOW MANY there are is the game's: a world declares its
+// bar and may declare none at all. Four are drawn because four keycaps fit the strip, and the caption
+// says so — a picture of four numbered keys with no explanation invites the reader to assume both that
+// the numbers mean something inherent and that there are four of them.
 // The strip is 130px tall and has to carry three rows — title, buttons, captions. The modifier
 // reminder therefore sits INLINE with the title rather than on a row of its own: given its own line it
 // collided with "ACTION BAR" above and pushed the captions off the bottom edge of the canvas.
+//
+// ⚠ There is no room for a fourth row, and the three images share this position. The gamepad layouts
+// run about 50px lower than the keyboard's, so lifting the strip to make room drives the divider
+// through their shoulder-button box — which is why the note that the slot COUNT is the game's lives in
+// the Controls panel's prose rather than here.
 const int STRIP_TOP = 470, STRIP_TITLE_Y = 492, STRIP_ROW_Y = 536, STRIP_LABEL_Y = 576;
 // Evenly spaced, and far enough right that the gamepad's "+" (drawn 46px left of each button) still
 // clears the frame. An earlier hand-picked set bunched the last two together.
@@ -331,11 +337,10 @@ SKBitmap BuildKeyboard()
     (int Cy, string Label, int W, int H, int Fs, string Action, string? Sub)[] rows =
     [
         (165, "Shift", 120, 46, 24, "Run", "(Hold)"),
-        (220, "E", 54, 46, 30, "Attack", null),
-        (275, "F", 54, 46, 30, "Pick Up", null),
-        (330, "Q", 54, 46, 30, "Cast Prepared Spell", null),
-        (385, "Tab", 84, 46, 24, "Cycle Target", "(+Shift Reverse, +Ctrl Self)"),
-        (440, "Enter", 112, 46, 24, "Chat", null),
+        (225, "E", 54, 46, 30, "Interact", "(Shops, Signs, Conversations)"),
+        (285, "F", 54, 46, 30, "Pick Up", null),
+        (345, "Tab", 84, 46, 24, "Cycle Target", "(+Shift Reverse, +Ctrl Self)"),
+        (405, "Enter", 112, 46, 24, "Chat", null),
     ];
     foreach (var (cy, label, w, h, fs, action, sub) in rows)
     {
@@ -374,17 +379,15 @@ SKBitmap BuildGamepad(bool xbox)
     (int Cy, object Btn, string Action, string? Sub)[] faces = xbox
         ?
         [
-            (158, ("B", new SKColor(214, 69, 59)), "Run", "(Hold)"),
-            (213, ("X", new SKColor(59, 124, 214)), "Attack", null),
-            (268, ("A", new SKColor(107, 191, 58)), "Pick Up", null),
-            (323, ("Y", new SKColor(230, 185, 59)), "Cast Prepared Spell", null),
+            (168, ("B", new SKColor(214, 69, 59)), "Run", "(Hold)"),
+            (233, ("X", new SKColor(59, 124, 214)), "Interact", null),
+            (298, ("A", new SKColor(107, 191, 58)), "Pick Up", null),
         ]
         :
         [
-            (158, "circle", "Run", "(Hold)"),
-            (213, "square", "Attack", null),
-            (268, "cross", "Pick Up", null),
-            (323, "triangle", "Cast Prepared Spell", null),
+            (168, "circle", "Run", "(Hold)"),
+            (233, "square", "Interact", null),
+            (298, "cross", "Pick Up", null),
         ];
 
     // Slot order mirrors GameplayScreen.Update: X, Y, B, A. X/Y/B were the old HP/MP/SP potions, so

@@ -34,12 +34,12 @@
 using SkiaSharp;
 
 // ── Palette ──────────────────────────────────────────────────────────────────
-// The accent #9aa8f5 is the brand mark and is shared with the site and both desktop apps. The ground
-// and the unlit tiles are the apps' violet neutrals — a hue-rotated family rather than the blue-cast
-// near-blacks the mark started on, so an icon and the window it opens agree.
-var PLATE = new SKColor(16, 12, 32, 255);       // #100c20 — deepest of the ramp, below the app background
-var DIM = new SKColor(52, 44, 82, 255);         // #342c52 — unlit tiles, dark enough to keep the lit one loud
-var LIT = new SKColor(154, 168, 245, 255);      // #9aa8f5
+// The accent #4fc9b7 is the brand mark and is shared with the site and both desktop apps. The ground
+// and the unlit tiles are the forest-green neutrals the site is built on, so an icon and the window
+// it opens agree.
+var PLATE = new SKColor(8, 17, 14, 255);        // #08110e — deepest of the ramp, below the app background
+var DIM = new SKColor(36, 70, 61, 255);         // #24463d — unlit tiles, dark enough to keep the atom loud
+var LIT = new SKColor(79, 201, 183, 255);       // #4fc9b7
 
 // ── Geometry, in the favicon's 32-unit space ─────────────────────────────────
 const int UNITS = 32;
@@ -47,14 +47,48 @@ const float PLATE_RADIUS = 6f;
 const int SS = 1024 / UNITS;        // supersample: 32 device pixels per unit
 const int SIDE = UNITS * SS;
 
-// The eight unlit tiles, then the lit one. Identical to public/favicon.svg in the site repo.
+// The eight unlit tiles. Identical to public/favicon.svg in the site repo.
 (int X, int Y, int W, int H)[] TILES =
 [
     (4, 4, 7, 7), (13, 4, 7, 7), (22, 4, 6, 7),
     (4, 13, 7, 7), (22, 13, 6, 7),
     (4, 22, 7, 6), (13, 22, 7, 6), (22, 22, 6, 6),
 ];
-var LIT_TILE = (X: 13, Y: 13, W: 7, H: 7);
+
+// The atom, where the ninth tile used to be: a nucleus of three dots, two orbits crossing it, and an
+// electron riding each one. The nucleus IS the core, which is what makes the figure say the name
+// rather than decorate it.
+//
+// ⚠ What keeps this off React's mark is the DOTS, not the angles. React is three bare ellipses around
+// a single small disc — nothing rides its paths and nothing sits in its middle but that disc. An
+// electron on each orbit and a clustered nucleus are both things it does not have, and they read at a
+// glance where the angle of the ellipses does not.
+//
+// A single orbit is no escape either: one ring around a sphere is a planet, whatever is at the centre.
+//
+// The nucleus carries the mark on its own at 16px, where the orbits have thinned below a pixel and the
+// three dots have fused into one. That is the size the whole drawing is sized from: it degrades to a
+// lit centre in a grid, which is what the mark was before the atom and still reads.
+const float CENTER = 16f;
+const float ORBIT_STROKE = 1.5f;
+
+// Tilt, and the two radii, per orbit. Deliberately not a mirrored pair and deliberately not the same
+// ellipse twice: a symmetric X reads as the diagram of an atom, and an uneven one reads as a drawing
+// of this one.
+(float Angle, float Rx, float Ry)[] ORBITS = [(-24f, 12.4f, 4.9f), (52f, 11.5f, 4.2f)];
+
+// One electron per orbit, as that ellipse's own parameter in degrees. One rides the top of the figure
+// and the other sits out to the right, so neither the pair nor the whole reads as balanced. Both are
+// clear of the bottom-right corner, where the editor's pencil and the server's folder go.
+float[] ELECTRON_T = [20f, 180f];
+const float ELECTRON_R = 1.6f;
+
+// Three dots, offset from the centre and from each other, on no particular triangle.
+//
+// ⚠ Every pair OVERLAPS, and the margin is small: the earlier spread missed by a tenth of a unit on
+// all three pairs, which drew three separate circles at every size. What should read is a core with
+// some size to it, so if these move, check that each pair's centres stay closer than its radii sum.
+(float Dx, float Dy, float R)[] NUCLEUS = [(0.15f, -1.35f, 1.75f), (-1.35f, 0.75f, 1.6f), (1.25f, 0.95f, 1.5f)];
 
 // The badge sits on the bottom-right tile, drawn in the accent directly on the grid. An earlier
 // version put the glyph on a filled circle, which made the badge half the width of the icon and
@@ -147,7 +181,31 @@ SKBitmap Render(Action<SKCanvas>? badge)
         canvas.DrawRoundRect(SKRect.Create(U(x), U(y), U(w), U(h)), U(1), U(1), paint);
 
     paint.Color = LIT;
-    canvas.DrawRoundRect(SKRect.Create(U(LIT_TILE.X), U(LIT_TILE.Y), U(LIT_TILE.W), U(LIT_TILE.H)), U(1), U(1), paint);
+    for (int i = 0; i < ORBITS.Length; i++)
+    {
+        var (angle, rx, ry) = ORBITS[i];
+
+        canvas.Save();
+        canvas.RotateDegrees(angle, U(CENTER), U(CENTER));
+
+        paint.Style = SKPaintStyle.Stroke;
+        paint.StrokeWidth = U(ORBIT_STROKE);
+        canvas.DrawOval(U(CENTER), U(CENTER), U(rx), U(ry), paint);
+
+        // Inside the same rotation, so the electron is on the path by construction rather than by a
+        // second piece of arithmetic that has to be kept in step with the ellipse.
+        double t = ELECTRON_T[i] * Math.PI / 180.0;
+        paint.Style = SKPaintStyle.Fill;
+        canvas.DrawCircle(U(CENTER + rx * (float)Math.Cos(t)),
+                          U(CENTER + ry * (float)Math.Sin(t)),
+                          U(ELECTRON_R), paint);
+        canvas.Restore();
+    }
+
+    // Last, so the cluster covers where the orbits meet rather than being crossed by them.
+    paint.Style = SKPaintStyle.Fill;
+    foreach (var (dx, dy, r) in NUCLEUS)
+        canvas.DrawCircle(U(CENTER + dx), U(CENTER + dy), U(r), paint);
 
     badge?.Invoke(canvas);
     return bmp;
