@@ -1,0 +1,64 @@
+# ── Build outputs ────────────────────────────────────────────────────────────
+# RepoPaths is a real project and builds here. The single-file `dotnet run --file`
+# generators build into a temp dir and leave nothing behind.
+[Bb]in/
+[Oo]bj/
+out/
+publish/
+dist/
+
+# ── Editors / IDEs ───────────────────────────────────────────────────────────
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+_ReSharper*/
+*.DotSettings.user
+
+# ── NuGet ────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ── Node ─────────────────────────────────────────────────────────────────────
+# No package.json today — the .mjs tools are dependency-free and run on bare node.
+# Here so that stays a choice rather than an accident.
+node_modules/
+npm-debug.log*
+*.tsbuildinfo
+
+# ── OS noise ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Scratch ──────────────────────────────────────────────────────────────────
+# These are exploratory tools; half-finished experiments are the normal state of
+# the folder. Give them somewhere to live that is not the commit.
+*.bak
+*.tmp
+*.orig
+scratch/
+tmp/
+
+# Captured console dumps (`… > out.txt`). Every tool prints its findings to stdout and
+# re-runs in seconds, so a redirect is a stale copy the moment the seed moves — and it
+# carries build warnings and absolute machine paths with it. Re-run the tool instead.
+out.txt
+*.out.txt
+
+# ── Agent / assistant files ──────────────────────────────────────────────────
+.claude/
+CLAUDE.md
