@@ -77,10 +77,16 @@ const float ORBIT_STROKE = 1.5f;
 // of this one.
 (float Angle, float Rx, float Ry)[] ORBITS = [(-24f, 12.4f, 4.9f), (52f, 11.5f, 4.2f)];
 
-// One electron per orbit, as that ellipse's own parameter in degrees. One rides the top of the figure
-// and the other sits out to the right, so neither the pair nor the whole reads as balanced. Both are
-// clear of the bottom-right corner, where the editor's pencil and the server's folder go.
-float[] ELECTRON_T = [20f, 180f];
+// Which orbit each electron rides, and where on it, as that ellipse's own parameter in degrees.
+//
+// ⚠ THREE electrons, not one per orbit, and the wide one carries two. Two crossed ellipses have
+// their far ends on opposite diagonals, so taking one end from each always lands both on the same
+// side of the mark — two tops, or two lefts. A diagonal pair has to share an orbit, and once one
+// orbit holds two the third is what keeps the figure off a straight line.
+//
+// They fill the top-right, bottom-left, and top-left. Bottom-right is left empty for the badge, a
+// 4.3-unit circle at (25, 25), so the editor and server icons read as balanced rather than crowded.
+(int Orbit, float T)[] ELECTRONS = [(0, 345f), (0, 155f), (1, 180f)];
 const float ELECTRON_R = 1.6f;
 
 // Three dots, offset from the centre and from each other, on no particular triangle.
@@ -192,13 +198,17 @@ SKBitmap Render(Action<SKCanvas>? badge)
         paint.StrokeWidth = U(ORBIT_STROKE);
         canvas.DrawOval(U(CENTER), U(CENTER), U(rx), U(ry), paint);
 
-        // Inside the same rotation, so the electron is on the path by construction rather than by a
+        // Inside the same rotation, so an electron is on the path by construction rather than by a
         // second piece of arithmetic that has to be kept in step with the ellipse.
-        double t = ELECTRON_T[i] * Math.PI / 180.0;
         paint.Style = SKPaintStyle.Fill;
-        canvas.DrawCircle(U(CENTER + rx * (float)Math.Cos(t)),
-                          U(CENTER + ry * (float)Math.Sin(t)),
-                          U(ELECTRON_R), paint);
+        foreach (var (orbit, degrees) in ELECTRONS)
+        {
+            if (orbit != i) continue;
+            double t = degrees * Math.PI / 180.0;
+            canvas.DrawCircle(U(CENTER + rx * (float)Math.Cos(t)),
+                              U(CENTER + ry * (float)Math.Sin(t)),
+                              U(ELECTRON_R), paint);
+        }
         canvas.Restore();
     }
 
