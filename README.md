@@ -1,14 +1,17 @@
 # MirageCore.Tools.Public
 
-**Art generators for [Mirage Core](https://github.com/mnwachukwu/MirageCore).** Two programs that draw shipped image assets as geometry
-rather than exporting them from a design file.
+**Generators for [Mirage Core](https://github.com/mnwachukwu/MirageCore).** Two that draw shipped image
+assets as geometry rather than exporting them from a design file, and two that build the sample
+world's records from the content that already describes it.
 
 ```
 dotnet run --file ArtGenerators/gen-icons.cs
 dotnet run --file ArtGenerators/gen-control-images.cs
+dotnet run --file WorldBuilder/gen-msr-world.cs
+dotnet run --file WorldBuilder/gen-msr-quests.cs
 ```
 
-Both write into the engine repository, which has to sit **beside this one**:
+All of them write into the engine repository, which has to sit **beside this one**:
 
 ```
 D:\Repos\
@@ -25,12 +28,20 @@ tell the two apart, and pointing this at the wrong one overwrites the other prod
 | | |
 |---|---|
 | `ArtGenerators/` | the application icons and the control-scheme reference images |
+| `WorldBuilder/` | the nineteen maps of the sample world, and the 54 quests that fill its towns |
 | `RepoPaths/` | where the sibling checkouts are |
 
-**The world tooling is not here.** The VB6 converter, the content generators, and the balance
-simulations write Mirage Source Remastered's own world, and they live in that project's tools
-repository. Core has no bundled world to generate.
+**The VB6 converter and the balance simulations are not here.** They act on Mirage Source
+Remastered's own authored content rather than producing anything Core ships, and they live in that
+project's tools repository.
 
-⚠ **Neither generator has a dry run.** They write their output the moment they start. That is safe —
-they only ever overwrite their own generated assets, in known locations — but it is the opposite of
-the content generators' default next door, so do not assume nothing happened without `--apply`.
+`gen-msr-quests.cs` additionally reads a **MirageSourceRemastered** checkout beside this one, which
+is where those 54 quests are authored. Without it that one program has nothing to convert and says
+so; the other three do not need it.
+
+⚠ **The two art generators have no dry run.** They write their output the moment they start. That is
+safe — they only ever overwrite their own generated assets, in known locations — but it is the
+opposite of the two world builders, which report and write nothing until `--apply`.
+
+⚠ **`gen-msr-world.cs` rewrites maps 1-19 whole**, so anything done to them in the editor is lost.
+Change its tables and regenerate, or author by hand; the two do not mix.
